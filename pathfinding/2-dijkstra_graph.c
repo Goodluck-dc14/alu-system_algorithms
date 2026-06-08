@@ -31,28 +31,60 @@ static int get_next(size_t nb, size_t *dist, char *visited)
 /**
  * build_path - Builds the path queue by walking back through via array
  * @graph: pointer to the graph
- * @start: starting vertex
  * @target: target vertex
  * @via: array of predecessor indices
  * @path: queue to fill
  */
-static void build_path(graph_t *graph, vertex_t const *start,
-		       vertex_t const *target, long *via, queue_t *path)
+static void build_path(graph_t *graph, vertex_t const *target,
+		       long *via, queue_t *path)
 {
 	vertex_t *v;
-	long i;
 	size_t cur = target->index;
 
-	(void)start;
 	while (1)
 	{
-		for (v = graph->vertices, i = 0; v; v = v->next, i++)
-			if ((size_t)i == cur)
-				break;
+		for (v = graph->vertices; v && v->index != cur; v = v->next)
+			;
 		queue_push_front(path, strdup(v->content));
 		if (via[cur] == -1)
 			break;
 		cur = (size_t)via[cur];
+	}
+}
+
+/**
+ * run_dijkstra - Runs the main Dijkstra loop over the graph
+ * @graph: pointer to the graph
+ * @start: starting vertex
+ * @target: target vertex
+ * @dist: array of distances
+ * @via: array of predecessor indices
+ * @visited: array marking visited vertices
+ */
+static void run_dijkstra(graph_t *graph, vertex_t const *start,
+			 vertex_t const *target, size_t *dist,
+			 long *via, char *visited)
+{
+	int cur;
+	vertex_t *v;
+	edge_t *e;
+
+	while ((cur = get_next(graph->nb_vertices, dist, visited)) != -1)
+	{
+		for (v = graph->vertices; v && v->index != (size_t)cur;
+		     v = v->next)
+			;
+		visited[cur] = 1;
+		printf("Checking %s, distance from %s is %lu\n",
+		       v->content, start->content, dist[cur]);
+		if (v == target)
+			break;
+		for (e = v->edges; e; e = e->next)
+			if (dist[cur] + e->weight < dist[e->dest->index])
+			{
+				dist[e->dest->index] = dist[cur] + e->weight;
+				via[e->dest->index] = cur;
+			}
 	}
 }
 
@@ -71,9 +103,6 @@ queue_t *dijkstra_graph(graph_t *graph, vertex_t const *start,
 	size_t *dist, i;
 	long *via;
 	char *visited;
-	int cur;
-	vertex_t *v;
-	edge_t *e;
 
 	if (!graph || !start || !target)
 		return (NULL);
@@ -85,25 +114,10 @@ queue_t *dijkstra_graph(graph_t *graph, vertex_t const *start,
 	for (i = 0; i < graph->nb_vertices; i++)
 		dist[i] = ULONG_MAX, via[i] = -1;
 	dist[start->index] = 0;
-	while ((cur = get_next(graph->nb_vertices, dist, visited)) != -1)
-	{
-		for (v = graph->vertices; v && v->index != (size_t)cur; v = v->next)
-			;
-		visited[cur] = 1;
-		printf("Checking %s, distance from %s is %lu\n",
-		       v->content, start->content, dist[cur]);
-		if (v == target)
-			break;
-		for (e = v->edges; e; e = e->next)
-			if (dist[cur] + e->weight < dist[e->dest->index])
-			{
-				dist[e->dest->index] = dist[cur] + e->weight;
-				via[e->dest->index] = cur;
-			}
-	}
+	run_dijkstra(graph, start, target, dist, via, visited);
 	path = queue_create();
 	if (dist[target->index] != ULONG_MAX)
-		build_path(graph, start, target, via, path);
+		build_path(graph, target, via, path);
 	else
 		queue_delete(path), path = NULL;
 	free(dist), free(via), free(visited);
