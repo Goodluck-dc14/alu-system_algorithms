@@ -1,34 +1,38 @@
 #include "heap.h"
 
 /**
- * get_parent - Finds the parent node for the next insertion
- * @root: root of the heap
- * @size: current size of the heap
+ * find_insertion_parent - Finds parent for next insert via level-order scan
+ * @heap: pointer to the heap
  *
- * Return: pointer to the parent node where insertion happens
+ * Return: pointer to the node that will be the parent of the new node
  */
-static binary_tree_node_t *get_parent(binary_tree_node_t *root, size_t size)
+static binary_tree_node_t *find_insertion_parent(heap_t *heap)
 {
-	size_t path, bit;
-	binary_tree_node_t *node = root;
+	binary_tree_node_t **queue, *node, *parent = NULL;
+	size_t front = 0, back = 0;
 
-	path = (size + 1) / 2;
-	for (bit = 1; bit <= path; bit <<= 1)
-		;
-	bit >>= 2;
-	while (bit > 1)
+	queue = malloc(sizeof(*queue) * (heap->size + 1));
+	if (!queue)
+		return (NULL);
+
+	queue[back++] = heap->root;
+	while (front < back)
 	{
-		if (path & bit)
-			node = node->right;
-		else
-			node = node->left;
-		bit >>= 1;
+		node = queue[front++];
+		if (!node->left || !node->right)
+		{
+			parent = node;
+			break;
+		}
+		queue[back++] = node->left;
+		queue[back++] = node->right;
 	}
-	return (node);
+	free(queue);
+	return (parent);
 }
 
 /**
- * swap_up - Swaps data up while child is smaller than parent
+ * swap_up - Swaps data up while child is smaller than its parent
  * @heap: pointer to the heap
  * @node: node to sift up
  *
@@ -72,7 +76,10 @@ binary_tree_node_t *heap_insert(heap_t *heap, void *data)
 		return (heap->root);
 	}
 
-	parent = get_parent(heap->root, heap->size);
+	parent = find_insertion_parent(heap);
+	if (!parent)
+		return (NULL);
+
 	node = binary_tree_node(parent, data);
 	if (!node)
 		return (NULL);
