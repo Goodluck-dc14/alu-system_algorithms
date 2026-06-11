@@ -48,8 +48,10 @@ heap_t *huffman_priority_queue(char *data, size_t *freq, size_t size)
 	if (!heap)
 		return (NULL);
 
-	for (i = 0; i < size; i++)
+	i = size;
+	while (i > 0)
 	{
+		i--;
 		symbol = symbol_create(data[i], freq[i]);
 		if (!symbol)
 			return (NULL);
