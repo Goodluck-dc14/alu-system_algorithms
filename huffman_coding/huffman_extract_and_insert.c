@@ -3,8 +3,8 @@
 #include "huffman.h"
 
 /**
- * huffman_extract_and_insert - Extracts the two least frequent nodes and
- * inserts a new merged node back into the priority queue
+ * huffman_extract_and_insert - Extracts two least frequent nodes and
+ * inserts a merged node back into the priority queue
  * @priority_queue: pointer to the priority queue
  *
  * Return: 1 on success, 0 on failure
