@@ -32,7 +32,7 @@ static binary_tree_node_t *find_insertion_parent(heap_t *heap)
 }
 
 /**
- * swap_up - Swaps data up while child is smaller than or equal to parent
+ * swap_up - Swaps data up while child is strictly smaller than parent
  * @heap: pointer to the heap
  * @node: node to sift up
  *
@@ -43,7 +43,7 @@ static binary_tree_node_t *swap_up(heap_t *heap, binary_tree_node_t *node)
 	void *tmp;
 
 	while (node->parent &&
-	       heap->data_cmp(node->parent->data, node->data) >= 0)
+	       heap->data_cmp(node->parent->data, node->data) > 0)
 	{
 		tmp = node->data;
 		node->data = node->parent->data;
