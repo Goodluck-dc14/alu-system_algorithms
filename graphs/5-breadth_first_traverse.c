@@ -2,34 +2,19 @@
 #include "graphs.h"
 
 /**
- * breadth_first_traverse - Traverses a graph using breadth-first algorithm
- * @graph: Pointer to the graph to traverse
+ * bfs_loop - Runs the breadth-first loop over a pre-seeded queue
+ * @queue: BFS queue, already seeded with the starting vertex
+ * @visited: Array marking visited vertices by index
+ * @back: Number of vertices currently in the queue
  * @action: Function to call for each visited vertex
  *
- * Return: The biggest vertex depth, or 0 on failure
+ * Return: The biggest depth reached
  */
-size_t breadth_first_traverse(const graph_t *graph,
-			      void (*action)(const vertex_t *v, size_t depth))
+static size_t bfs_loop(const vertex_t **queue, char *visited, size_t back,
+		       void (*action)(const vertex_t *v, size_t depth))
 {
-	const vertex_t **queue;
-	char *visited;
-	size_t front = 0, back = 0, depth = 0, level_end, i;
+	size_t front = 0, depth = 0, level_end, i;
 	edge_t *edge;
-
-	if (!graph || !graph->vertices || !action)
-		return (0);
-
-	queue = malloc(sizeof(*queue) * graph->nb_vertices);
-	visited = calloc(graph->nb_vertices, sizeof(char));
-	if (!queue || !visited)
-	{
-		free(queue);
-		free(visited);
-		return (0);
-	}
-
-	queue[back++] = graph->vertices;
-	visited[graph->vertices->index] = 1;
 
 	while (front < back)
 	{
@@ -48,9 +33,40 @@ size_t breadth_first_traverse(const graph_t *graph,
 		if (front < back)
 			depth++;
 	}
+	return (depth);
+}
+
+/**
+ * breadth_first_traverse - Traverses a graph using breadth-first algorithm
+ * @graph: Pointer to the graph to traverse
+ * @action: Function to call for each visited vertex
+ *
+ * Return: The biggest vertex depth, or 0 on failure
+ */
+size_t breadth_first_traverse(const graph_t *graph,
+			      void (*action)(const vertex_t *v, size_t depth))
+{
+	const vertex_t **queue;
+	char *visited;
+	size_t depth;
+
+	if (!graph || !graph->vertices || !action)
+		return (0);
+
+	queue = malloc(sizeof(*queue) * graph->nb_vertices);
+	visited = calloc(graph->nb_vertices, sizeof(char));
+	if (!queue || !visited)
+	{
+		free(queue);
+		free(visited);
+		return (0);
+	}
+
+	queue[0] = graph->vertices;
+	visited[graph->vertices->index] = 1;
+	depth = bfs_loop(queue, visited, 1, action);
 
 	free(queue);
 	free(visited);
 	return (depth);
 }
-
