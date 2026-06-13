@@ -29,7 +29,7 @@ static binary_tree_node_t *get_last_node(heap_t *heap)
 }
 
 /**
- * sift_down - Restores the min-heap property, keeping earlier nodes on ties
+ * sift_down - Restores the min-heap property, pushing past equal children
  * @heap: pointer to the heap
  * @node: node to sift down
  */
